@@ -1,0 +1,49 @@
+services:
+  api-gateway:
+    container_name: api-gateway
+    build: ./api-gateway # build bằng Dockerfile
+    # image:  # build bằng hub docker
+    ports:
+      - 8080:8080
+    networks:
+      - node-network
+  notify-service:
+    container_name: notify-service
+    build: ./notify-service
+    networks:
+      - node-network
+  order-service:
+    container_name: order-service
+    build: ./order-service
+    environment:
+      - LOCAL_DATABASE_URL_POSTGRESQL=postgresql://postgres:admin123@some-postgres:5432/db_food
+    networks:
+      - node-network
+  shipping-service:
+    container_name: shipping-service
+    build: ./shipping-service
+    networks:
+      - node-network
+    environment:
+      - LOCAL_DATABASE_URL_POSTGRESQL=postgresql://postgres:admin123@some-postgres:5432/db_food
+  user-service:
+    container_name: user-service
+    build: ./user-service
+    networks:
+      - node-network
+    environment:
+      - LOCAL_DATABASE_URL_POSTGRESQL=postgresql://postgres:admin123@some-postgres:5432/db_food
+  product-service:
+    container_name: product-service
+    build: ./product-service
+    networks:
+      - node-network
+    environment:
+      - LOCAL_DATABASE_URL_POSTGRESQL=postgresql://postgres:admin123@some-postgres:5432/db_food
+      - REDIS_HOST=some-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=admin123
+      - REDIS_TTL=5000
+networks:
+  node-network:
+    external: true
