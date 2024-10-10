@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("LOCAL_DATABASE_URL_POSTGRESQL")
+}
+
+model category {
+  category_id   Int       @id @default(autoincrement())
+  category_name String?   @db.VarChar(255)
+  create_at     DateTime? @default(now()) @db.Timestamp(6)
+  is_remove     Boolean?  @default(false)
+  icon          String?   @db.VarChar(255)
+  product       product[]
+}
+
+model orders {
+  order_id     Int        @id @default(autoincrement())
+  user_id      Int?
+  list_product Json?
+  create_at    DateTime?  @default(now()) @db.Timestamp(6)
+  users        users?     @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  payment      payment[]
+  shipping     shipping[]
+}
+
+model payment {
+  payment_id Int       @id @default(autoincrement())
+  order_id   Int?
+  status     String?   @db.VarChar(50)
+  create_at  DateTime? @default(now()) @db.Timestamp(6)
+  orders     orders?   @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model product {
+  product_id   Int       @id @default(autoincrement())
+  product_name String?   @db.VarChar(255)
+  attributes   Json?
+  rate         Decimal?  @db.Decimal(2, 1)
+  star         Int?
+  description  String?
+  category_id  Int?
+  create_at    DateTime? @default(now()) @db.Timestamp(6)
+  is_remove    Boolean?  @default(false)
+  address      String?   @db.VarChar(255)
+  category     category? @relation(fields: [category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model shipping {
+  ship_id   Int       @id @default(autoincrement())
+  order_id  Int?
+  full_name String?   @db.VarChar(255)
+  email     String?   @db.VarChar(255)
+  phone     String?   @db.VarChar(15)
+  address   String?
+  create_at DateTime? @default(now()) @db.Timestamp(6)
+  orders    orders?   @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  user_id   Int       @id @default(autoincrement())
+  full_name String?   @db.VarChar(255)
+  email     String?   @unique @db.VarChar(255)
+  phone     String?   @unique @db.VarChar(255)
+  username  String?   @unique @db.VarChar(255)
+  password  String?   @db.VarChar(255)
+  create_at DateTime? @default(now()) @db.Timestamp(6)
+  is_remove Boolean?  @default(false)
+  orders    orders[]
+}
