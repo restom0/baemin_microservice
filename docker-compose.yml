@@ -34,8 +34,8 @@ services:
     environment:
       - LOCAL_DATABASE_URL_POSTGRESQL=postgresql://postgres:admin123@some-postgres:5432/db_food
   product-service:
-    container_name: product-service
-    build: ./product-service
+    container_name: products-service
+    build: ./products-service
     networks:
       - node-network
     environment:
