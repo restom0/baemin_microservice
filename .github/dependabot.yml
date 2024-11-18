@@ -29,7 +29,27 @@ updates:
     directory: "/user-service" # Location of package manifests
     schedule:
       interval: "weekly"
+- package-ecosystem: "docker" # See documentation for possible values
+    directory: "/api-gateway" # Location of package manifests
+    schedule:
+      interval: "weekly"
   - package-ecosystem: "docker" # See documentation for possible values
-    directory: "/" # Location of package manifests
+    directory: "/notify-service" # Location of package manifests
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker" # See documentation for possible values
+    directory: "/order-service" # Location of package manifests
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker" # See documentation for possible values
+    directory: "/products-service" # Location of package manifests
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker" # See documentation for possible values
+    directory: "/shipping-service" # Location of package manifests
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker" # See documentation for possible values
+    directory: "/user-service" # Location of package manifests
     schedule:
       interval: "weekly"
