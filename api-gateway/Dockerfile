@@ -1,5 +1,5 @@
 # Use a smaller base image
-FROM node:20-alpine AS builder
+FROM node:23-alpine AS builder
 
 # Set working directory
 WORKDIR /root/app
@@ -17,7 +17,7 @@ COPY . .
 RUN yarn run build
 
 # Use a smaller image for production
-FROM node:20-alpine
+FROM node:23-alpine
 
 # Set working directory
 WORKDIR /root/app
