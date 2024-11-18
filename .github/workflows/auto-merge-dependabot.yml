@@ -1,25 +1,14 @@
-name: Auto Merge Dependabot PRs
+name: auto-merge
 
 on:
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
 
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Automatically merge Dependabot PRs
-        uses: pascalgn/automerge-action@v0.15.3
+      - uses: actions/checkout@v2
+      - uses: ahmadnassri/action-dependabot-auto-merge@v2
         with:
-          mergeMethod: squash # Choose merge method: squash, merge, or rebase
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: |
-          github.event.pull_request.user.login == 'dependabot[bot]' &&
-          github.event.pull_request.base.ref == 'main'
+          target: minor
+          github-token: ${{ secrets.mytoken }}
