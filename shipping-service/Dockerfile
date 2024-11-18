@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:23-alpine AS builder
 WORKDIR /root/app
 COPY package*.json yarn*.lock ./
 RUN yarn config set network-timeout 3000000 && yarn install
@@ -9,7 +9,7 @@ COPY . .
 RUN yarn run build
 
 # Stage 2: Production
-FROM node:20-alpine
+FROM node:23-alpine
 WORKDIR /root/app
 COPY --from=builder /root/app/dist ./dist
 COPY --from=builder /root/app/node_modules ./node_modules
