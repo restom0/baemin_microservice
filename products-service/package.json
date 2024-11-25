@@ -32,7 +32,7 @@
     "amqplib": "^0.10.4",
     "cache-manager": "5.7.6",
     "cache-manager-redis-store": "2.0.0",
-    "prisma": "^5.20.0",
+    "prisma": "^5.22.0",
     "product-service": "file:",
     "redis": "^4.7.0",
     "reflect-metadata": "^0.2.0",
