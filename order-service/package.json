@@ -28,7 +28,7 @@
     "@nestjs/platform-express": "^10.4.8",
     "@prisma/client": "^5.20.0",
     "amqp-connection-manager": "^4.1.14",
-    "amqplib": "^0.10.4",
+    "amqplib": "^0.10.5",
     "nodemailer": "^6.9.15",
     "order-service": "file:",
     "prisma": "^5.20.0",
