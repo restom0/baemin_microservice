@@ -26,7 +26,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/microservices": "^10.4.12",
     "@nestjs/platform-express": "^10.4.12",
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^6.0.1",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.5",
     "nodemailer": "^6.9.15",
