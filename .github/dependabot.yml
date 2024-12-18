@@ -1,55 +1,31 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
-
 version: 2
 updates:
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/api-gateway" # Location of package manifests
+  # NPM Updates
+  - package-ecosystem: "npm"
+    directory: "/"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/notify-service" # Location of package manifests
+    groups:
+      npm-services:
+        patterns:
+          - "api-gateway/**"
+          - "notify-service/**"
+          - "order-service/**"
+          - "products-service/**"
+          - "shipping-service/**"
+          - "user-service/**"
+
+  # Docker Updates
+  - package-ecosystem: "docker"
+    directory: "/"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/order-service" # Location of package manifests
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/products-service" # Location of package manifests
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/shipping-service" # Location of package manifests
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/user-service" # Location of package manifests
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker" # See documentation for possible values
-    directory: "/api-gateway" # Location of package manifests
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker" # See documentation for possible values
-    directory: "/notify-service" # Location of package manifests
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker" # See documentation for possible values
-    directory: "/order-service" # Location of package manifests
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker" # See documentation for possible values
-    directory: "/products-service" # Location of package manifests
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker" # See documentation for possible values
-    directory: "/shipping-service" # Location of package manifests
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker" # See documentation for possible values
-    directory: "/user-service" # Location of package manifests
-    schedule:
-      interval: "weekly"
+    groups:
+      docker-services:
+        patterns:
+          - "api-gateway/**"
+          - "notify-service/**"
+          - "order-service/**"
+          - "products-service/**"
+          - "shipping-service/**"
+          - "user-service/**"
