@@ -27,7 +27,7 @@
     "@nestjs/microservices": "^10.4.15",
     "@nestjs/platform-express": "^10.4.12",
     "amqp-connection-manager": "^4.1.14",
-    "amqplib": "^0.10.4",
+    "amqplib": "^0.10.5",
     "nodemailer": "^6.9.15",
     "notify-service": "file:",
     "reflect-metadata": "^0.2.0",
