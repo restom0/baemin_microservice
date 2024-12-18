@@ -28,7 +28,7 @@
     "@nestjs/platform-express": "^10.4.15",
     "@prisma/client": "^6.0.1",
     "amqp-connection-manager": "^4.1.14",
-    "amqplib": "^0.10.4",
+    "amqplib": "^0.10.5",
     "cache-manager": "5.7.6",
     "cache-manager-redis-store": "2.0.0",
     "prisma": "^6.0.1",
