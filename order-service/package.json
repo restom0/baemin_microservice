@@ -29,7 +29,7 @@
     "@prisma/client": "^6.0.1",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.5",
-    "nodemailer": "^6.9.15",
+    "nodemailer": "^7.0.11",
     "order-service": "file:",
     "prisma": "^5.20.0",
     "reflect-metadata": "^0.2.0",
