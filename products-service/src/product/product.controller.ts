@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Param, Query } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ProductService } from './product.service';
 
@@ -22,8 +22,8 @@ export class ProductController {
   @MessagePattern('get_product_by_name')
   getProductByName(
     @Payload('name') name: string,
-    @Payload('page') page?: string,
+    @Payload('page') page?: number,
   ) {
-    return this.productService.getProductByName(name, +page || 0);
+    return this.productService.getProductByName(name, page);
   }
 }

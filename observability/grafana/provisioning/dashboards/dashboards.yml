@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: Baemin
+    orgId: 1
+    folder: Baemin
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

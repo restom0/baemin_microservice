@@ -4,42 +4,43 @@ import * as nodemailer from 'nodemailer';
 @Injectable()
 export class NotifyService {
   constructor(private configService: ConfigService) {}
-  sendMailInfoOrder(data: any) {
-    let { email, full_name } = data;
-    let configMail = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: this.configService.get('EMAIL'),
-        pass: this.configService.get('EMAIL_TOKEN'),
-      },
-    });
 
-    let infoMail = {
+  async sendMailInfoOrder(data: any) {
+    const { email, full_name } = data;
+    const configMail = this.createTransport();
+
+    const infoMail = {
       from: this.configService.get('EMAIL'),
       to: email,
-      subject: `Đặt hàng qua Amazon - ${full_name} - ${email}`,
-      html: '<h1> Xác nhận đợn hàng thành công </h1>',
+      subject: `Dat hang qua Baemin - ${full_name} - ${email}`,
+      html: '<h1>Xac nhan don hang thanh cong</h1>',
     };
 
-    configMail.sendMail(infoMail, (error) => error);
+    await configMail.sendMail(infoMail);
+    return { status: 200, message: 'Order email sent' };
   }
-  sendMailInfoShipping(data: any) {
-    let { email, full_name } = data;
-    let configMail = nodemailer.createTransport({
+  async sendMailInfoShipping(data: any) {
+    const { email, full_name } = data;
+    const configMail = this.createTransport();
+
+    const infoMail = {
+      from: this.configService.get('EMAIL'),
+      to: email,
+      subject: `Dat hang qua Baemin - ${full_name} - ${email}`,
+      html: '<h1>Don hang dang duoc giao</h1>',
+    };
+
+    await configMail.sendMail(infoMail);
+    return { status: 200, message: 'Shipping email sent' };
+  }
+
+  private createTransport() {
+    return nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: this.configService.get('EMAIL'),
         pass: this.configService.get('EMAIL_TOKEN'),
       },
     });
-
-    let infoMail = {
-      from: this.configService.get('EMAIL'),
-      to: email,
-      subject: `Đặt hàng qua Amazon - ${full_name} - ${email}`,
-      html: '<h1> Đặt hàng thành công </h1>',
-    };
-
-    configMail.sendMail(infoMail, (error) => error);
   }
 }

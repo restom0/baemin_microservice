@@ -3,15 +3,17 @@ import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
+  const rabbitUrl =
+    process.env.RABBITMQ_URL || 'amqp://admin:admin123@some-rabbit:5672';
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
       transport: Transport.RMQ,
       options: {
-        urls: ['amqp://admin:admin123@some-rabbit:5672'],
-        queue: 'shipping_queue',
+        urls: [rabbitUrl],
+        queue: process.env.SHIPPING_QUEUE || 'shipping_queue',
         queueOptions: {
-          durable: false,
+          durable: process.env.RABBITMQ_DURABLE === 'true',
         },
       },
     },

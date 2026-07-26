@@ -1,49 +1,181 @@
+x-baemin-logging: &baemin-logging
+  driver: gelf
+  options:
+    gelf-address: udp://localhost:12201
+    mode: non-blocking
+    max-buffer-size: 4m
+    tag: "{{.Name}}"
+
 services:
   api-gateway:
     container_name: api-gateway
-    build: ./api-gateway # build bằng Dockerfile
-    # image:  # build bằng hub docker
+    build: ./api-gateway
     ports:
       - 8080:8080
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-BI_MAT}
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://admin:admin123@some-rabbit:5672}
+      - PRODUCT_QUEUE=${PRODUCT_QUEUE:-product_queue}
+      - USER_QUEUE=${USER_QUEUE:-user_queue}
+      - ORDER_QUEUE=${ORDER_QUEUE:-order_queue}
+      - SHIPPING_QUEUE=${SHIPPING_QUEUE:-shipping_queue}
+      - NOTIFY_QUEUE=${NOTIFY_QUEUE:-notify_queue}
+    logging: *baemin-logging
     networks:
       - node-network
+
   notify-service:
     container_name: notify-service
     build: ./notify-service
+    environment:
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://admin:admin123@some-rabbit:5672}
+      - NOTIFY_QUEUE=${NOTIFY_QUEUE:-notify_queue}
+      - EMAIL=${EMAIL:-}
+      - EMAIL_TOKEN=${EMAIL_TOKEN:-}
+    logging: *baemin-logging
     networks:
       - node-network
+
   order-service:
     container_name: order-service
     build: ./order-service
     environment:
-      - LOCAL_DATABASE_URL_POSTGRESQL=postgresql://postgres:admin123@some-postgres:5432/db_food
+      - LOCAL_DATABASE_URL_POSTGRESQL=${LOCAL_DATABASE_URL_POSTGRESQL:-postgresql://postgres:admin123@some-postgres:5432/db_food}
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://admin:admin123@some-rabbit:5672}
+      - ORDER_QUEUE=${ORDER_QUEUE:-order_queue}
+    logging: *baemin-logging
     networks:
       - node-network
+
   shipping-service:
     container_name: shipping-service
     build: ./shipping-service
+    environment:
+      - LOCAL_DATABASE_URL_POSTGRESQL=${LOCAL_DATABASE_URL_POSTGRESQL:-postgresql://postgres:admin123@some-postgres:5432/db_food}
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://admin:admin123@some-rabbit:5672}
+      - SHIPPING_QUEUE=${SHIPPING_QUEUE:-shipping_queue}
+      - NOTIFY_QUEUE=${NOTIFY_QUEUE:-notify_queue}
+    logging: *baemin-logging
     networks:
       - node-network
-    environment:
-      - LOCAL_DATABASE_URL_POSTGRESQL=postgresql://postgres:admin123@some-postgres:5432/db_food
+
   user-service:
     container_name: user-service
     build: ./user-service
+    environment:
+      - LOCAL_DATABASE_URL_POSTGRESQL=${LOCAL_DATABASE_URL_POSTGRESQL:-postgresql://postgres:admin123@some-postgres:5432/db_food}
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://admin:admin123@some-rabbit:5672}
+      - USER_QUEUE=${USER_QUEUE:-user_queue}
+      - JWT_SECRET=${JWT_SECRET:-BI_MAT}
+    logging: *baemin-logging
     networks:
       - node-network
-    environment:
-      - LOCAL_DATABASE_URL_POSTGRESQL=postgresql://postgres:admin123@some-postgres:5432/db_food
+
   product-service:
     container_name: products-service
     build: ./products-service
+    environment:
+      - LOCAL_DATABASE_URL_POSTGRESQL=${LOCAL_DATABASE_URL_POSTGRESQL:-postgresql://postgres:admin123@some-postgres:5432/db_food}
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://admin:admin123@some-rabbit:5672}
+      - PRODUCT_QUEUE=${PRODUCT_QUEUE:-product_queue}
+      - REDIS_HOST=${REDIS_HOST:-some-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-admin123}
+      - REDIS_TTL=${REDIS_TTL:-5000}
+    logging: *baemin-logging
     networks:
       - node-network
+
+  elasticsearch:
+    container_name: baemin-elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.15.0}
     environment:
-      - LOCAL_DATABASE_URL_POSTGRESQL=postgresql://postgres:admin123@some-postgres:5432/db_food
-      - REDIS_HOST=some-redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=admin123
-      - REDIS_TTL=5000
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - 9200:9200
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+    networks:
+      - node-network
+
+  logstash:
+    container_name: baemin-logstash
+    image: docker.elastic.co/logstash/logstash:${ELASTIC_VERSION:-8.15.0}
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+      - BAEMIN_ENV=${BAEMIN_ENV:-local}
+    ports:
+      - 5000:5000/tcp
+      - 12201:12201/udp
+      - 9600:9600
+    volumes:
+      - ./observability/logstash/pipelines.yml:/usr/share/logstash/config/pipelines.yml:ro
+      - ./observability/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - node-network
+
+  kibana:
+    container_name: baemin-kibana
+    image: docker.elastic.co/kibana/kibana:${ELASTIC_VERSION:-8.15.0}
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - 5601:5601
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - node-network
+
+  prometheus:
+    container_name: baemin-prometheus
+    image: prom/prometheus:${PROMETHEUS_VERSION:-v2.53.1}
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    ports:
+      - 9090:9090
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - node-network
+
+  grafana:
+    container_name: baemin-grafana
+    image: grafana/grafana:${GRAFANA_VERSION:-11.1.3}
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - 3001:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+      - elasticsearch
+    networks:
+      - node-network
+
+volumes:
+  elasticsearch-data:
+  prometheus-data:
+  grafana-data:
+
 networks:
   node-network:
     external: true

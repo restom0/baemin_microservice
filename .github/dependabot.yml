@@ -1,31 +1,295 @@
 version: 2
 updates:
-  # NPM Updates
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: npm
+    directory: /api-gateway
     schedule:
-      interval: "weekly"
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 2
+    versioning-strategy: increase
+    rebase-strategy: disabled
+    labels:
+      - dependencies
+      - api-gateway
+    commit-message:
+      prefix: deps
+      include: scope
     groups:
-      npm-services:
+      npm-minor-patch:
         patterns:
-          - "api-gateway/**"
-          - "notify-service/**"
-          - "order-service/**"
-          - "products-service/**"
-          - "shipping-service/**"
-          - "user-service/**"
+          - "*"
+          - "@*/*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
 
-  # Docker Updates
-  - package-ecosystem: "docker"
-    directory: "/"
+  - package-ecosystem: npm
+    directory: /user-service
     schedule:
-      interval: "weekly"
+      interval: weekly
+      day: monday
+      time: "09:15"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 2
+    versioning-strategy: increase
+    rebase-strategy: disabled
+    labels:
+      - dependencies
+      - user-service
+    commit-message:
+      prefix: deps
+      include: scope
     groups:
-      docker-services:
+      npm-minor-patch:
         patterns:
-          - "api-gateway/**"
-          - "notify-service/**"
-          - "order-service/**"
-          - "products-service/**"
-          - "shipping-service/**"
-          - "user-service/**"
+          - "*"
+          - "@*/*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: npm
+    directory: /products-service
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:30"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 2
+    versioning-strategy: increase
+    rebase-strategy: disabled
+    labels:
+      - dependencies
+      - products-service
+    commit-message:
+      prefix: deps
+      include: scope
+    groups:
+      npm-minor-patch:
+        patterns:
+          - "*"
+          - "@*/*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: npm
+    directory: /order-service
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:45"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 2
+    versioning-strategy: increase
+    rebase-strategy: disabled
+    labels:
+      - dependencies
+      - order-service
+    commit-message:
+      prefix: deps
+      include: scope
+    groups:
+      npm-minor-patch:
+        patterns:
+          - "*"
+          - "@*/*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: npm
+    directory: /shipping-service
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:00"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 2
+    versioning-strategy: increase
+    rebase-strategy: disabled
+    labels:
+      - dependencies
+      - shipping-service
+    commit-message:
+      prefix: deps
+      include: scope
+    groups:
+      npm-minor-patch:
+        patterns:
+          - "*"
+          - "@*/*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: npm
+    directory: /notify-service
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:15"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 2
+    versioning-strategy: increase
+    rebase-strategy: disabled
+    labels:
+      - dependencies
+      - notify-service
+    commit-message:
+      prefix: deps
+      include: scope
+    groups:
+      npm-minor-patch:
+        patterns:
+          - "*"
+          - "@*/*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: docker
+    directory: /api-gateway
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:30"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 1
+    rebase-strategy: disabled
+    labels:
+      - dependencies
+      - docker
+    commit-message:
+      prefix: deps
+      include: scope
+    groups:
+      docker-images:
+        patterns:
+          - "*"
+
+  - package-ecosystem: docker
+    directory: /user-service
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:35"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 1
+    rebase-strategy: disabled
+    labels:
+      - dependencies
+      - docker
+    commit-message:
+      prefix: deps
+      include: scope
+    groups:
+      docker-images:
+        patterns:
+          - "*"
+
+  - package-ecosystem: docker
+    directory: /products-service
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:40"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 1
+    rebase-strategy: disabled
+    labels:
+      - dependencies
+      - docker
+    commit-message:
+      prefix: deps
+      include: scope
+    groups:
+      docker-images:
+        patterns:
+          - "*"
+
+  - package-ecosystem: docker
+    directory: /order-service
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:45"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 1
+    rebase-strategy: disabled
+    labels:
+      - dependencies
+      - docker
+    commit-message:
+      prefix: deps
+      include: scope
+    groups:
+      docker-images:
+        patterns:
+          - "*"
+
+  - package-ecosystem: docker
+    directory: /shipping-service
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:50"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 1
+    rebase-strategy: disabled
+    labels:
+      - dependencies
+      - docker
+    commit-message:
+      prefix: deps
+      include: scope
+    groups:
+      docker-images:
+        patterns:
+          - "*"
+
+  - package-ecosystem: docker
+    directory: /notify-service
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:55"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 1
+    rebase-strategy: disabled
+    labels:
+      - dependencies
+      - docker
+    commit-message:
+      prefix: deps
+      include: scope
+    groups:
+      docker-images:
+        patterns:
+          - "*"

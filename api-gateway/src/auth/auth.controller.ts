@@ -1,4 +1,11 @@
-import { Body, Controller, Inject, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Inject,
+  InternalServerErrorException,
+  Post,
+} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { catchError, lastValueFrom, of, retry, timeout } from 'rxjs';
 
@@ -8,17 +15,14 @@ export class AuthController {
 
   @Post('/login')
   async login(@Body() user: { email: string; password: string }) {
-    const { email, password } = user;
+    const { email, password } = user ?? {};
     if (!email || !password) {
-      return {
-        status: 400,
-        message: 'Email and password are required',
-      };
+      throw new BadRequestException('Email and password are required');
     }
-    return await lastValueFrom(
+    const result = await lastValueFrom(
       this.authService
         .send('login-user', {
-          email,
+          email: email.trim(),
           password,
         })
         .pipe(
@@ -28,6 +32,10 @@ export class AuthController {
           ),
         ),
     );
+    if (result?.status === 500) {
+      throw new InternalServerErrorException('Internal server error');
+    }
+    return result;
   }
   @Post('/register')
   register(
@@ -40,21 +48,18 @@ export class AuthController {
       username: string;
     },
   ) {
-    const { email, full_name, password, phone, username } = user;
+    const { email, full_name, password, phone, username } = user ?? {};
     if (!email || !full_name || !password || !phone || !username) {
-      return {
-        status: 400,
-        message: 'All fields are required',
-      };
+      throw new BadRequestException('All fields are required');
     }
     return lastValueFrom(
       this.authService
         .send('register-user', {
-          email,
-          full_name,
+          email: email.trim(),
+          full_name: full_name.trim(),
           password,
-          phone,
-          username,
+          phone: phone.trim(),
+          username: username.trim(),
         })
         .pipe(
           timeout(5000),

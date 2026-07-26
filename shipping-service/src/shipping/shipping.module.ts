@@ -3,6 +3,9 @@ import { ShippingService } from './shipping.service';
 import { ShippingController } from './shipping.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 
+const rabbitUrl =
+  process.env.RABBITMQ_URL || 'amqp://admin:admin123@some-rabbit:5672';
+
 @Module({
   imports: [
     ClientsModule.register([
@@ -10,14 +13,10 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         name: 'NOTIFY_NAME',
         transport: Transport.RMQ,
         options: {
-          // url kết nối đến server RabbitMQ
-          urls: ['amqp://admin:admin123@some-rabbit:5672'],
-          // tên queue xử lý
-          queue: 'notify_queue',
+          urls: [rabbitUrl],
+          queue: process.env.NOTIFY_QUEUE || 'notify_queue',
           queueOptions: {
-            // chế độ lưu trữ:
-            // true: save - false not save, khi RabbitMQrestart
-            durable: false,
+            durable: process.env.RABBITMQ_DURABLE === 'true',
           },
         },
       },

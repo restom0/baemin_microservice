@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'crypto';
+import { promisify } from 'util';
+
+const scrypt = promisify(scryptCallback);
+const HASH_PREFIX = 'scrypt';
 
 @Injectable()
 export class AuthService {
@@ -9,34 +14,22 @@ export class AuthService {
     private prismaService: PrismaService,
   ) {}
 
-  async login(email: string, password: string) {
-    let checkEmail = await this.prismaService.users.findFirst({
+  async login(identity: string, password: string) {
+    const user = await this.prismaService.users.findFirst({
       where: {
-        email,
-        password,
+        OR: [{ email: identity }, { username: identity }, { phone: identity }],
       },
     });
-    let checkUsername = await this.prismaService.users.findFirst({
-      where: {
-        username: email,
-        password,
-      },
-    });
-    let checkPhone = await this.prismaService.users.findFirst({
-      where: {
-        phone: email,
-        password,
-      },
-    });
-    if (!checkEmail && !checkUsername && !checkPhone) {
+
+    if (!user || !(await this.verifyPassword(password, user.password))) {
       return 'Invalid email or password';
     }
+
     return this.jwtService.signAsync(
       {
-        user_id:
-          checkEmail?.user_id || checkUsername?.user_id || checkPhone?.user_id,
+        user_id: user.user_id,
       },
-      { expiresIn: '1d', secret: 'BI_MAT' },
+      { expiresIn: '1d', secret: process.env.JWT_SECRET || 'BI_MAT' },
     );
   }
   async register(
@@ -46,17 +39,17 @@ export class AuthService {
     phone: string,
     username: string,
   ) {
-    let checkEmail = await this.prismaService.users.findFirst({
+    const checkEmail = await this.prismaService.users.findFirst({
       where: {
         email,
       },
     });
-    let checkPhone = await this.prismaService.users.findFirst({
+    const checkPhone = await this.prismaService.users.findFirst({
       where: {
         phone,
       },
     });
-    let checkUsername = await this.prismaService.users.findFirst({
+    const checkUsername = await this.prismaService.users.findFirst({
       where: {
         username,
       },
@@ -70,16 +63,33 @@ export class AuthService {
     if (checkUsername) {
       return 'Username already exists';
     }
-    let newUser = {
+    const newUser = {
       email,
       phone,
       username,
       full_name,
-      password,
+      password: await this.hashPassword(password),
     };
-    let userRegister = await this.prismaService.users.create({
+    const userRegister = await this.prismaService.users.create({
       data: newUser,
     });
     return userRegister;
+  }
+
+  private async hashPassword(password: string) {
+    const salt = randomBytes(16).toString('hex');
+    const key = (await scrypt(password, salt, 64)) as Buffer;
+    return `${HASH_PREFIX}$${salt}$${key.toString('hex')}`;
+  }
+
+  private async verifyPassword(password: string, storedPassword: string) {
+    const [prefix, salt, storedKey] = storedPassword.split('$');
+    if (prefix !== HASH_PREFIX || !salt || !storedKey) {
+      return password === storedPassword;
+    }
+
+    const key = (await scrypt(password, salt, 64)) as Buffer;
+    const stored = Buffer.from(storedKey, 'hex');
+    return stored.length === key.length && timingSafeEqual(stored, key);
   }
 }

@@ -4,7 +4,6 @@ import { AppService } from './app.service';
 import { ShippingModule } from './shipping/shipping.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [

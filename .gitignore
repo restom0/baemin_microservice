@@ -1,0 +1,101 @@
+# Dependencies
+**/node_modules/
+**/.pnp/
+**/.pnp.*
+**/.yarn/*
+!**/.yarn/patches
+!**/.yarn/plugins
+!**/.yarn/releases
+!**/.yarn/sdks
+!**/.yarn/versions
+**/.yarn/install-state.gz
+.yarn-cache/
+**/.yarn-cache/
+.pnpm-store/
+jspm_packages/
+
+# Build output
+**/dist/
+**/build/
+**/.next/
+**/out/
+
+# Tests, coverage, and reports
+**/coverage/
+**/.nyc_output/
+test-results/
+playwright-report/
+coverage-artifacts/
+junit.xml
+*.lcov
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Environment and secrets
+.env
+.env.*
+**/.env
+**/.env.*
+**/.env*.local
+!.env.example
+!**/.env.example
+
+# Logs and process files
+logs/
+**/logs/
+*.log
+*.pid
+*.pid.lock
+dump.pm2
+**/.pm2/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Caches
+.cache/
+**/.cache/
+.turbo/
+**/.turbo/
+.eslintcache
+**/.eslintcache
+.stylelintcache
+**/.stylelintcache
+*.tsbuildinfo
+
+# Local databases and temporary files
+*.sqlite
+*.sqlite3
+*.db
+tmp/
+temp/
+**/tmp/
+**/temp/
+*.tmp
+*.temp
+
+# Observability runtime data
+observability/**/data/
+prometheus-data/
+grafana-data/
+elasticsearch-data/
+
+# Quality and deployment tooling
+.sonar/
+**/.sonar/
+**/.vercel/
+
+# Editors and OS
+.idea/
+**/.idea/
+*.iml
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo

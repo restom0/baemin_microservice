@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class ShippingService {
@@ -9,8 +10,8 @@ export class ShippingService {
     @Inject('NOTIFY_NAME') private notifyService: ClientProxy,
   ) {}
   async shipping(data) {
-    let { order_id, full_name, email, phone, address } = data;
-    let newShip = {
+    const { order_id, full_name, email, phone, address } = data;
+    const newShip = {
       order_id: order_id,
       full_name: full_name,
       email: email,
@@ -18,7 +19,12 @@ export class ShippingService {
       address: address,
       create_at: new Date(),
     };
-    await this.prismaService.shipping.create({ data: newShip });
-    this.notifyService.send('create-shipping-notify', data);
+    const shipping = await this.prismaService.shipping.create({
+      data: newShip,
+    });
+    void lastValueFrom(
+      this.notifyService.send('create-shipping-notify', data),
+    ).catch(() => undefined);
+    return shipping;
   }
 }

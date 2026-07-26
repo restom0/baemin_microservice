@@ -11,37 +11,40 @@ export class ProductService {
   ) {}
 
   async getAllProducts(page: number) {
-    let dataCache = await this.cacheManager.get('products');
-    if (dataCache && (dataCache as any).pagination.page === page) {
+    const currentPage = this.normalizePage(page);
+    const cacheKey = `products:page:${currentPage}`;
+    const dataCache = await this.cacheManager.get(cacheKey);
+    if (dataCache) {
       return dataCache;
     }
-    let data = await this.prismaService.product.findMany({
-      skip: (page - 1) * 8,
+    const data = await this.prismaService.product.findMany({
+      skip: (currentPage - 1) * 8,
       take: 8,
     });
-    let pagination = await this.prismaService.product.count();
-    let result = {
+    const pagination = await this.prismaService.product.count();
+    const result = {
       data: data,
       pagination: {
-        page: page,
+        page: currentPage,
         size: 8,
         total: Math.ceil(pagination / 8),
       },
     };
-    await this.cacheManager.set('products', result);
+    await this.cacheManager.set(cacheKey, result);
     return result;
   }
   async getProductByName(name: string, page: number) {
-    let data = await this.prismaService.product.findMany({
+    const currentPage = this.normalizePage(page);
+    const data = await this.prismaService.product.findMany({
       where: {
         product_name: {
           contains: name,
         },
       },
-      skip: (page - 1) * 8,
+      skip: (currentPage - 1) * 8,
       take: 8,
     });
-    let pagination = await this.prismaService.product.count({
+    const pagination = await this.prismaService.product.count({
       where: {
         product_name: {
           contains: name,
@@ -51,18 +54,26 @@ export class ProductService {
     return {
       data: data,
       pagination: {
-        page: page,
+        page: currentPage,
         size: 8,
         total: Math.ceil(pagination / 8),
       },
     };
   }
   async getProductById(id: number) {
-    let data = await this.prismaService.product.findFirst({
+    const data = await this.prismaService.product.findFirst({
       where: {
         product_id: id,
       },
     });
     return data;
+  }
+
+  private normalizePage(page?: number) {
+    if (!Number.isInteger(page) || page < 1) {
+      return 1;
+    }
+
+    return page;
   }
 }

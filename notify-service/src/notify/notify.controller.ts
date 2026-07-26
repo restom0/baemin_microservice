@@ -7,10 +7,10 @@ export class NotifyController {
   constructor(private readonly notifyService: NotifyService) {}
   @MessagePattern('create-order-notify')
   sendMailInfoOrder(@Payload() data: any) {
-    this.notifyService.sendMailInfoOrder(data);
+    return this.notifyService.sendMailInfoOrder(data);
   }
   @MessagePattern('create-shipping-notify')
   sendMailInfoShipping(@Payload() data: any) {
-    this.notifyService.sendMailInfoShipping(data);
+    return this.notifyService.sendMailInfoShipping(data);
   }
 }

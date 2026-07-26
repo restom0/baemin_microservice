@@ -6,8 +6,8 @@ export class OrderService {
   constructor(private prismaService: PrismaService) {}
   async order(data: any) {
     try {
-      let { user_id, list_product } = data;
-      let newOrder = {
+      const { user_id, list_product } = data;
+      const newOrder = {
         user_id: user_id,
         list_product: list_product,
       };
@@ -15,7 +15,7 @@ export class OrderService {
         data: newOrder,
       });
       return orderSuccess;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
