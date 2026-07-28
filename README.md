@@ -17,7 +17,7 @@ This repo contains the NestJS API gateway and independently deployable Baemin ba
 
 ## Runtime Architecture
 
-Source Mermaid lives in [`docs/architecture.mmd`](docs/architecture.mmd). Use [$figma:figma-generate-diagram](C:\Users\ACER\.codex\plugins\cache\openai-curated-remote\figma\2.0.16\skills\figma-generate-diagram\SKILL.md) with `useArchitectureLayoutCode: "FIGMA_DIAGRAM_2026"` to generate an editable FigJam architecture diagram.
+Source Mermaid lives in [`docs/architecture.mmd`](docs/architecture.mmd).
 
 ```mermaid
 flowchart LR
@@ -62,7 +62,7 @@ flowchart LR
 
 ## Observability Diagram
 
-Source Mermaid lives in [`docs/observability.mmd`](docs/observability.mmd). This one is a standard flowchart for [$figma:figma-generate-diagram](C:\Users\ACER\.codex\plugins\cache\openai-curated-remote\figma\2.0.16\skills\figma-generate-diagram\SKILL.md).
+Source Mermaid lives in [`docs/observability.mmd`](docs/observability.mmd).
 
 ```mermaid
 flowchart LR
@@ -88,7 +88,7 @@ flowchart LR
 - Microservice thumbnail source: [`docs/thumbnail.svg`](docs/thumbnail.svg).
 - Microservice icon source: [`docs/icon.svg`](docs/icon.svg).
 
-Use [$figma:figma-generate-design](C:\Users\ACER\.codex\plugins\cache\openai-curated-remote\figma\2.0.16\skills\figma-generate-design\SKILL.md) to recreate/refine the thumbnail and icon in Figma from these code-derived SVG bases. The visual cues come from the code and compose file: API Gateway, RabbitMQ queues, five Nest services, PostgreSQL, Redis, and the ELK/Prometheus/Grafana observability stack.
+The visual language mirrors the code and compose file: API Gateway, RabbitMQ queues, five Nest services, PostgreSQL, Redis, and the ELK/Prometheus/Grafana observability stack.
 
 ## Docker Compose
 
@@ -161,9 +161,28 @@ yarn test:cov
 yarn build
 ```
 
-## Figma Workflow
+## Testing
 
-1. Generate runtime architecture from [`docs/architecture.mmd`](docs/architecture.mmd) with [$figma:figma-generate-diagram](C:\Users\ACER\.codex\plugins\cache\openai-curated-remote\figma\2.0.16\skills\figma-generate-diagram\SKILL.md) and `useArchitectureLayoutCode: "FIGMA_DIAGRAM_2026"`.
-2. Generate observability flow from [`docs/observability.mmd`](docs/observability.mmd) with the same diagram skill as a standard flowchart.
-3. Use [$figma:figma-generate-design](C:\Users\ACER\.codex\plugins\cache\openai-curated-remote\figma\2.0.16\skills\figma-generate-design\SKILL.md) with [`docs/thumbnail.svg`](docs/thumbnail.svg) and [`docs/icon.svg`](docs/icon.svg) as the visual source of truth.
-4. Import SVG icons directly into Figma from the source SVG when refining the icon.
+Each service ships Jest suites and a 100% coverage threshold (statements, branches, functions, lines):
+
+- **Unit tests** cover controllers, services, and RMQ message handlers in isolation with mocked transports, Prisma, Redis, and SMTP.
+- **API tests** (`yarn test:api`) exercise the gateway HTTP controllers end to end with the downstream RMQ clients mocked.
+- **Integration tests** (`yarn test:integration`, run in-band) verify each service's message patterns against its providers.
+
+Run inside any service directory:
+
+```bash
+yarn test        # unit
+yarn test:cov    # unit + coverage (gated at 100%)
+yarn test:api    # gateway API tests
+yarn test:integration
+```
+
+## CI/CD
+
+GitHub Actions workflows live in [`.github/workflows`](.github/workflows) and run on pushes to `master`, pull requests, and manual dispatch:
+
+- `ci.yml` — a matrix job lints, type checks, tests with coverage (gated at 100%), and builds every service, then uploads each service's coverage report. A `runtime-config` job validates [`docker-compose.yml`](docker-compose.yml) and [`ecosystem.config.js`](ecosystem.config.js). A `sonar` job aggregates coverage and scans when `SONAR_TOKEN` is set. On `master`, a `docker` matrix job builds each service image and publishes it to GitHub Packages (GHCR) as `ghcr.io/<owner>/baemin_microservice/<service>` using the built-in `GITHUB_TOKEN`.
+- `qodana.yml` — runs JetBrains Qodana static analysis and uploads results to GitHub code scanning.
+
+Sonar configuration lives in [`sonar-project.properties`](sonar-project.properties) and Qodana in [`qodana.yaml`](qodana.yaml).

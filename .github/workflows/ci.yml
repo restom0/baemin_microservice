@@ -1,0 +1,143 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  quality:
+    name: Quality - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api-gateway
+          - user-service
+          - products-service
+          - order-service
+          - shipping-service
+          - notify-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: ${{ matrix.service }}/yarn.lock
+      - name: Install Yarn
+        run: npm install --global yarn@1.22.22
+      - name: Install dependencies
+        working-directory: ${{ matrix.service }}
+        run: yarn install --non-interactive
+      - name: Generate Prisma client
+        working-directory: ${{ matrix.service }}
+        run: |
+          if [ -f src/prisma/schema.prisma ]; then
+            yarn prisma generate --schema=src/prisma/schema.prisma
+          else
+            echo "No Prisma schema in ${{ matrix.service }}; skipping generate."
+          fi
+      - name: Lint
+        working-directory: ${{ matrix.service }}
+        run: yarn lint
+      - name: Type check
+        working-directory: ${{ matrix.service }}
+        run: yarn typecheck
+      - name: Unit, API, and integration tests with coverage
+        working-directory: ${{ matrix.service }}
+        run: yarn test:cov
+      - name: Build
+        working-directory: ${{ matrix.service }}
+        run: yarn build
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.service }}
+          path: ${{ matrix.service }}/coverage
+          if-no-files-found: ignore
+
+  runtime-config:
+    name: Runtime Config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Docker Compose
+        run: docker compose -f docker-compose.yml config
+      - name: Validate PM2 ecosystem config
+        run: |
+          node -e "const c = require('./ecosystem.config.js'); if (!Array.isArray(c.apps) || c.apps.length !== 6) { throw new Error('Invalid PM2 ecosystem config'); }"
+
+  sonar:
+    name: Sonar Quality Gate
+    runs-on: ubuntu-latest
+    needs: [quality]
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    steps:
+      - name: Skip when Sonar is not configured
+        if: env.SONAR_TOKEN == ''
+        run: echo "SONAR_TOKEN is not configured; skipping Sonar scan."
+      - uses: actions/checkout@v4
+        if: env.SONAR_TOKEN != ''
+        with:
+          fetch-depth: 0
+      - name: Download coverage artifacts
+        if: env.SONAR_TOKEN != ''
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          path: coverage-artifacts
+      - name: SonarQube scan
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v3
+
+  docker:
+    name: Publish ${{ matrix.service }} image
+    runs-on: ubuntu-latest
+    needs: [quality, runtime-config]
+    if: github.ref == 'refs/heads/master'
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api-gateway
+          - user-service
+          - products-service
+          - order-service
+          - shipping-service
+          - notify-service
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.service }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
