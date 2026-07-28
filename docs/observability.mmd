@@ -1,0 +1,7 @@
+flowchart LR
+    services["NestJS services"] -->|"GELF logs"| logstash["Logstash"]
+    logstash -->|"baemin-logs-* index"| elasticsearch["Elasticsearch"]
+    elasticsearch -->|"Explore logs"| kibana["Kibana"]
+    apiGateway["API Gateway /metrics"] -->|"Scrape target"| prometheus["Prometheus"]
+    prometheus -->|"Metrics datasource"| grafana["Grafana"]
+    elasticsearch -->|"Logs datasource"| grafana

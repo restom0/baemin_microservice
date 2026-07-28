@@ -1,0 +1,38 @@
+flowchart LR
+    subgraph client ["Client Apps"]
+        webClient["Next.js Client"]
+    end
+    subgraph gateway ["API Layer"]
+        apiGateway["NestJS API Gateway"]
+    end
+    subgraph service ["Core Services"]
+        userService["User Service"]
+        productService["Product Service"]
+        orderService["Order Service"]
+        shippingService["Shipping Service"]
+        notifyService["Notify Service"]
+    end
+    subgraph datastore ["Data Stores"]
+        postgres["PostgreSQL db_food"]
+        redis["Redis Cache"]
+    end
+    subgraph external ["External"]
+        gmail["Gmail SMTP"]
+    end
+    subgraph async ["Messaging"]
+        rabbitmq["RabbitMQ"]
+    end
+
+    webClient -->|"HTTPS"| apiGateway
+    apiGateway -->|"Auth RPC"| userService
+    apiGateway -->|"Product RPC"| productService
+    apiGateway -->|"Order RPC"| orderService
+    apiGateway -->|"Shipping RPC"| shippingService
+    userService -->|"Reads/Writes Users"| postgres
+    productService -->|"Reads Products"| postgres
+    productService -->|"Caches Products"| redis
+    orderService -->|"Writes Orders"| postgres
+    shippingService -->|"Writes Shipping"| postgres
+    shippingService -.->|"Produces Notifications"| rabbitmq
+    rabbitmq -.->|"Consumes Notifications"| notifyService
+    notifyService -.->|"NotifyService: Sends Email"| gmail
